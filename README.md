@@ -1,72 +1,45 @@
-Bomb Shell Monitoring Dashboard
+Bomb Shell React-Only Dashboard
 ===============================
 
 Tech stack:
-- Backend: Python, Flask
-- Frontend: React, Vite
-- Data source: Firebase Realtime Database (`/Bomb_Shell` node)
+- React + Vite
+- Firebase Realtime Database (web SDK)
+- Chart.js + react-chartjs-2
 
-Project structure
------------------
-
-- `backend/`
-  - `app.py`          : Flask API server that reads from Firebase RTDB
-  - `requirements.txt`: Python dependencies
-  - `README.md`       : Backend usage instructions
-
-- `frontend/`
-  - `package.json`    : React/Vite project config
-  - `vite.config.mjs` : Vite dev server + API proxy
-  - `index.html`      : Entry HTML
-  - `src/`
-      - `main.jsx`    : React entry file
-      - `App.jsx`     : Dashboard layout
-      - `components/BombShellCard.jsx`: Card UI for the metrics
-      - `styles.css`  : Styling
-
-How to run everything
----------------------
-
-1. Start the backend (Python + Flask)
-   ----------------------------------
-
-   ```bash
-   cd backend
-   python -m venv venv        # optional
-   source venv/bin/activate   # Windows: venv\Scripts\activate
-   pip install -r requirements.txt
-   python app.py
-   ```
-
-   The backend will run on: `http://localhost:5000`
-
-2. Start the frontend (React)
-   --------------------------
-
-   Open a new terminal:
-
-   ```bash
-   cd frontend
-   npm install
-   npm run dev
-   ```
-
-   The frontend will run on: `http://localhost:5173`
-
-   Vite is configured so every request starting with `/api` is automatically
-   sent to the Python backend on port 5000.
+This project directly connects to your Firebase RTDB from the browser.
+No Python / backend is required.
 
 Firebase path used
 ------------------
 
-The backend reads from:
+It listens to the node:
 
-- `https://intel-gesture-default-rtdb.firebaseio.com/Bomb_Shell`
+- `/Bomb_Shell`
 
-with the child keys:
+with children:
 
 - `Air_Pressure`
 - `Sound`
 - `Vibration`
 
-Whatever your ESP8266 writes to that path will be shown in the dashboard.
+Whatever your ESP8266 writes there will appear in the dashboard and graphs.
+
+How to run
+----------
+
+1. Install dependencies:
+
+   ```bash
+   npm install
+   ```
+
+2. Start the dev server:
+
+   ```bash
+   npm run dev
+   ```
+
+3. Open the URL shown in the terminal (usually `http://localhost:5173`).
+
+Make sure your Firebase Realtime Database rules allow read access from
+your browser for the `/Bomb_Shell` node.

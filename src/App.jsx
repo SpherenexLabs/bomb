@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from "react";
+import { db } from "./firebase";
+import { ref, onValue } from "firebase/database";
 import BombShellCard from "./components/BombShellCard";
 import BombShellCharts from "./components/BombShellCharts";
 
-const REFRESH_INTERVAL_MS = 2000; // 2 seconds
-const MAX_HISTORY = 60; // keep last 60 samples
+const MAX_HISTORY = 60; // keep last 60 points
 
 export default function App() {
   const [data, setData] = useState(null);
@@ -11,56 +12,69 @@ export default function App() {
   const [lastUpdated, setLastUpdated] = useState(null);
   const [error, setError] = useState(null);
 
-  async function fetchData() {
-    try {
-      const res = await fetch("/api/bomb-shell");
-      if (!res.ok) {
-        throw new Error("Failed to fetch data");
-      }
-      const json = await res.json();
-      setData(json);
-      setLastUpdated(new Date());
-      setError(null);
-
-      const now = Date.now();
-
-      const air = json.air_pressure;
-      const airNumeric =
-        air === null || air === undefined || air === "" ? null : Number(air);
-
-      const soundRaw = json.raw?.sound ?? "";
-      const vibrationRaw = json.raw?.vibration ?? "";
-
-      const soundVal =
-        soundRaw === "1" ? 1 : soundRaw === "0" ? 0 : null;
-      const vibrationVal =
-        vibrationRaw === "1" ? 1 : vibrationRaw === "0" ? 0 : null;
-
-      setHistory((prev) => {
-        const next = [
-          ...prev,
-          {
-            timestamp: now,
-            air_pressure: airNumeric,
-            sound: soundVal,
-            vibration: vibrationVal
-          }
-        ];
-        if (next.length > MAX_HISTORY) {
-          next.splice(0, next.length - MAX_HISTORY);
-        }
-        return next;
-      });
-    } catch (err) {
-      console.error(err);
-      setError(err.message || "Error fetching data");
-    }
-  }
-
   useEffect(() => {
-    fetchData();
-    const timer = setInterval(fetchData, REFRESH_INTERVAL_MS);
-    return () => clearInterval(timer);
+    const bombRef = ref(db, "Bomb_Shell");
+
+    const unsubscribe = onValue(
+      bombRef,
+      (snapshot) => {
+        const val = snapshot.val() || {};
+        const air = val.Air_Pressure ?? "";
+        const sound = val.Sound ?? "";
+        const vibration = val.Vibration ?? "";
+
+        const parsed = {
+          air_pressure: air,
+          raw: {
+            sound: String(sound).trim(),
+            vibration: String(vibration).trim()
+          }
+        };
+
+        setData(parsed);
+        setLastUpdated(new Date());
+        setError(null);
+
+        const now = Date.now();
+        const airNumeric =
+          air === null || air === undefined || air === "" ? null : Number(air);
+
+        const soundVal =
+          parsed.raw.sound === "1"
+            ? 1
+            : parsed.raw.sound === "0"
+            ? 0
+            : null;
+        const vibrationVal =
+          parsed.raw.vibration === "1"
+            ? 1
+            : parsed.raw.vibration === "0"
+            ? 0
+            : null;
+
+        setHistory((prev) => {
+          const next = [
+            ...prev,
+            {
+              timestamp: now,
+              air_pressure: airNumeric,
+              sound: soundVal,
+              vibration: vibrationVal
+            }
+          ];
+          if (next.length > MAX_HISTORY) {
+            next.splice(0, next.length - MAX_HISTORY);
+          }
+          return next;
+        });
+      },
+      (err) => {
+        console.error(err);
+        setError(err.message || "Error reading from Firebase");
+      }
+    );
+
+    return () => unsubscribe();
   }, []);
 
   return (

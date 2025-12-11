@@ -174,18 +174,7 @@ body {
   font-size: 0.7rem;
 }
 
-/* Small screens */
-@media (max-width: 640px) {
-  .header {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .meta {
-    text-align: left;
-  }
-}
-
+/* Chart layout */
 .chart-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
@@ -209,4 +198,16 @@ body {
 .chart-inner {
   position: relative;
   height: 220px;
+}
+
+/* Small screens */
+@media (max-width: 640px) {
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .meta {
+    text-align: left;
+  }
 }

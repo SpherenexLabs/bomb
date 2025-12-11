@@ -90,7 +90,9 @@ export default function BombShellCharts({ history }) {
     datasets: [
       {
         label: "Vibration",
-        data: history.map((h) => (h.vibration === null ? null : h.vibration)),
+        data: history.map((h) =>
+          h.vibration === null ? null : h.vibration
+        ),
         stepped: true
       }
     ]
@@ -117,9 +119,6 @@ export default function BombShellCharts({ history }) {
   return (
     <section className="card">
       <h2>Live Graphs</h2>
-      {/* <p className="card-description">
-        Last {history.length} readings captured from Firebase.
-      </p> */}
 
       <div className="chart-grid">
         <div className="chart-wrapper">

@@ -16,15 +16,25 @@ function statusClass(value) {
 export default function BombShellCard({ data }) {
   if (!data) {
     return (
-      <div className="card">
+      <section className="card">
+        <h2>Current Status</h2>
         <p>Waiting for data...</p>
-      </div>
+      </section>
     );
   }
 
   const airPressure = data.air_pressure ?? "";
-  const soundStatus = data.status?.sound ?? "UNKNOWN";
-  const vibrationStatus = data.status?.vibration ?? "UNKNOWN";
+  const soundRaw = data.raw?.sound ?? "";
+  const vibrationRaw = data.raw?.vibration ?? "";
+
+  const soundStatus =
+    soundRaw === "1" ? "DETECTED" : soundRaw === "0" ? "NO_ACTIVITY" : "UNKNOWN";
+  const vibrationStatus =
+    vibrationRaw === "1"
+      ? "DETECTED"
+      : vibrationRaw === "0"
+      ? "NO_ACTIVITY"
+      : "UNKNOWN";
 
   return (
     <section className="card">
