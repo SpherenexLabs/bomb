@@ -52,11 +52,14 @@ export default function BombShellCard({
   return (
     <>
       <section className="card">
-        <h2>Threat Detection</h2>
+        <h2>🛡️ Threat Detection</h2>
         
         <div className="grid">
           <div className="metric">
-            <h3>Threat Level</h3>
+            <div className="metric-header">
+              <span className="metric-icon">⚠️</span>
+              <h3>Threat Level</h3>
+            </div>
             <p className="metric-value">
               <span className={threatLevelClass(threatLevel)}>
                 {threatLevel}
@@ -65,7 +68,10 @@ export default function BombShellCard({
           </div>
 
           <div className="metric">
-            <h3>Confidence</h3>
+            <div className="metric-header">
+              <span className="metric-icon">📊</span>
+              <h3>Confidence</h3>
+            </div>
             <p className="metric-value">
               <span style={{ fontSize: '2rem', fontWeight: 'bold' }}>
                 {confidence}%
@@ -74,7 +80,10 @@ export default function BombShellCard({
           </div>
 
           <div className="metric">
-            <h3>Last Event</h3>
+            <div className="metric-header">
+              <span className="metric-icon">🕐</span>
+              <h3>Last Event</h3>
+            </div>
             <p className="metric-value" style={{ fontSize: '1rem' }}>
               {lastEventTime 
                 ? lastEventTime.toLocaleTimeString() 
@@ -84,43 +93,61 @@ export default function BombShellCard({
         </div>
 
         <div className="metric" style={{ marginTop: '1rem' }}>
-          <h3>Status Reason</h3>
-          <p style={{ color: '#64748b', fontSize: '0.95rem' }}>
+          <div className="metric-header">
+            <span className="metric-icon">💬</span>
+            <h3>Status Reason</h3>
+          </div>
+          <p style={{ color: 'rgba(255, 255, 255, 0.9)', fontSize: '0.95rem' }}>
             {autoStatusReason}
           </p>
         </div>
 
         <div className="grid" style={{ marginTop: '1.5rem' }}>
           <div className="metric">
-            <h3>Peak dB</h3>
+            <div className="metric-header">
+              <span className="metric-icon">🔊</span>
+              <h3>Peak dB</h3>
+            </div>
             <p className="metric-value">{(peakValues?.peakDb || 0).toFixed(1)}</p>
           </div>
 
           <div className="metric">
-            <h3>Peak Vibration</h3>
+            <div className="metric-header">
+              <span className="metric-icon">📳</span>
+              <h3>Peak Vibration</h3>
+            </div>
             <p className="metric-value">{(peakValues?.peakVibration || 0).toFixed(2)}</p>
           </div>
 
           <div className="metric">
-            <h3>Max Pressure Δ</h3>
+            <div className="metric-header">
+              <span className="metric-icon">🌡️</span>
+              <h3>Max Pressure Δ</h3>
+            </div>
             <p className="metric-value">{(peakValues?.maxPressureDelta || 0).toFixed(2)}</p>
           </div>
         </div>
       </section>
 
       <section className="card">
-        <h2>Current Sensor Status</h2>
+        <h2>📡 Current Sensor Status</h2>
 
         <div className="grid">
           <div className="metric">
-            <h3>Air Pressure</h3>
+            <div className="metric-header">
+              <span className="metric-icon">🌪️</span>
+              <h3>Air Pressure</h3>
+            </div>
             <p className="metric-value">
               {airPressure !== "" ? airPressure : "--"}
             </p>
           </div>
 
           <div className="metric">
-            <h3>Sound</h3>
+            <div className="metric-header">
+              <span className="metric-icon">🔉</span>
+              <h3>Sound</h3>
+            </div>
             <p className="metric-value">
               <span className={statusClass(soundStatus)}>
                 {statusLabel(soundStatus)}
@@ -129,7 +156,10 @@ export default function BombShellCard({
           </div>
 
           <div className="metric">
-            <h3>Vibration</h3>
+            <div className="metric-header">
+              <span className="metric-icon">〰️</span>
+              <h3>Vibration</h3>
+            </div>
             <p className="metric-value">
               <span className={statusClass(vibrationStatus)}>
                 {statusLabel(vibrationStatus)}

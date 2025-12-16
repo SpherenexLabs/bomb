@@ -3,6 +3,7 @@ import { db } from "./firebase";
 import { ref, onValue } from "firebase/database";
 import BombShellCard from "./components/BombShellCard";
 import BombShellCharts from "./components/BombShellCharts";
+import Toast from "./components/Toast";
 
 const MAX_HISTORY = 60; // keep last 60 points
 
@@ -23,6 +24,7 @@ export default function App() {
   });
   const [autoStatusReason, setAutoStatusReason] = useState("System monitoring");
   const [peakHistory, setPeakHistory] = useState([]);
+  const [toasts, setToasts] = useState([]);
 
   useEffect(() => {
     const bombRef = ref(db, "Bomb_Shell");
@@ -185,14 +187,34 @@ export default function App() {
     setConfidence(Math.min(conf, 100));
     setAutoStatusReason(statusReason);
     
+    // Show toast notifications
+    if (threat === "High") {
+      addToast("🚨 HIGH THREAT DETECTED! Multiple sensors triggered.", "danger");
+    } else if (threat === "Suspicious") {
+      addToast("⚠️ Suspicious Activity Detected", "warning");
+    }
+    
+    if (soundDetected) {
+      addToast("🔊 Sound Detected - High noise level registered!", "warning");
+    }
+    
     return updatedPeaks;
   }
+
+  const addToast = (message, type) => {
+    const id = Date.now();
+    setToasts((prev) => [...prev, { id, message, type }]);
+  };
+
+  const removeToast = (id) => {
+    setToasts((prev) => prev.filter((toast) => toast.id !== id));
+  };
 
   return (
     <div className="page">
       <header className="header">
         <div>
-          <h1>Bomb Shell Monitoring</h1>
+          <h1>💣 Bomb Shell Monitoring</h1>
         </div>
         <div className="meta">
           <div className="pill pill-online">LIVE</div>
@@ -203,6 +225,17 @@ export default function App() {
           )}
         </div>
       </header>
+
+      <div className="toast-container">
+        {toasts.map((toast) => (
+          <Toast
+            key={toast.id}
+            message={toast.message}
+            type={toast.type}
+            onClose={() => removeToast(toast.id)}
+          />
+        ))}
+      </div>
 
       <main className="content">
         {error && (
