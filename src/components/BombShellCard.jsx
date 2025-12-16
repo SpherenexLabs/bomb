@@ -13,7 +13,20 @@ function statusClass(value) {
   return "badge badge-unknown";
 }
 
-export default function BombShellCard({ data }) {
+function threatLevelClass(level) {
+  if (level === "High") return "badge badge-danger";
+  if (level === "Suspicious") return "badge badge-warning";
+  return "badge badge-safe";
+}
+
+export default function BombShellCard({ 
+  data, 
+  threatLevel = "Normal", 
+  confidence = 0, 
+  lastEventTime = null, 
+  peakValues = { peakDb: 0, peakVibration: 0, maxPressureDelta: 0 },
+  autoStatusReason = "System monitoring"
+}) {
   if (!data) {
     return (
       <section className="card">
@@ -37,35 +50,94 @@ export default function BombShellCard({ data }) {
       : "UNKNOWN";
 
   return (
-    <section className="card">
-      <h2>Current Status</h2>
+    <>
+      <section className="card">
+        <h2>Threat Detection</h2>
+        
+        <div className="grid">
+          <div className="metric">
+            <h3>Threat Level</h3>
+            <p className="metric-value">
+              <span className={threatLevelClass(threatLevel)}>
+                {threatLevel}
+              </span>
+            </p>
+          </div>
 
-      <div className="grid">
-        <div className="metric">
-          <h3>Air Pressure</h3>
-          <p className="metric-value">
-            {airPressure !== "" ? airPressure : "--"}
+          <div className="metric">
+            <h3>Confidence</h3>
+            <p className="metric-value">
+              <span style={{ fontSize: '2rem', fontWeight: 'bold' }}>
+                {confidence}%
+              </span>
+            </p>
+          </div>
+
+          <div className="metric">
+            <h3>Last Event</h3>
+            <p className="metric-value" style={{ fontSize: '1rem' }}>
+              {lastEventTime 
+                ? lastEventTime.toLocaleTimeString() 
+                : "No events detected"}
+            </p>
+          </div>
+        </div>
+
+        <div className="metric" style={{ marginTop: '1rem' }}>
+          <h3>Status Reason</h3>
+          <p style={{ color: '#64748b', fontSize: '0.95rem' }}>
+            {autoStatusReason}
           </p>
         </div>
 
-        <div className="metric">
-          <h3>Sound</h3>
-          <p className="metric-value">
-            <span className={statusClass(soundStatus)}>
-              {statusLabel(soundStatus)}
-            </span>
-          </p>
-        </div>
+        <div className="grid" style={{ marginTop: '1.5rem' }}>
+          <div className="metric">
+            <h3>Peak dB</h3>
+            <p className="metric-value">{(peakValues?.peakDb || 0).toFixed(1)}</p>
+          </div>
 
-        <div className="metric">
-          <h3>Vibration</h3>
-          <p className="metric-value">
-            <span className={statusClass(vibrationStatus)}>
-              {statusLabel(vibrationStatus)}
-            </span>
-          </p>
+          <div className="metric">
+            <h3>Peak Vibration</h3>
+            <p className="metric-value">{(peakValues?.peakVibration || 0).toFixed(2)}</p>
+          </div>
+
+          <div className="metric">
+            <h3>Max Pressure Δ</h3>
+            <p className="metric-value">{(peakValues?.maxPressureDelta || 0).toFixed(2)}</p>
+          </div>
         </div>
-      </div>
-    </section>
+      </section>
+
+      <section className="card">
+        <h2>Current Sensor Status</h2>
+
+        <div className="grid">
+          <div className="metric">
+            <h3>Air Pressure</h3>
+            <p className="metric-value">
+              {airPressure !== "" ? airPressure : "--"}
+            </p>
+          </div>
+
+          <div className="metric">
+            <h3>Sound</h3>
+            <p className="metric-value">
+              <span className={statusClass(soundStatus)}>
+                {statusLabel(soundStatus)}
+              </span>
+            </p>
+          </div>
+
+          <div className="metric">
+            <h3>Vibration</h3>
+            <p className="metric-value">
+              <span className={statusClass(vibrationStatus)}>
+                {statusLabel(vibrationStatus)}
+              </span>
+            </p>
+          </div>
+        </div>
+      </section>
+    </>
   );
 }

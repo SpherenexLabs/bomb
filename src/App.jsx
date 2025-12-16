@@ -11,6 +11,18 @@ export default function App() {
   const [history, setHistory] = useState([]);
   const [lastUpdated, setLastUpdated] = useState(null);
   const [error, setError] = useState(null);
+  
+  // Threat detection states
+  const [threatLevel, setThreatLevel] = useState("Normal");
+  const [confidence, setConfidence] = useState(0);
+  const [lastEventTime, setLastEventTime] = useState(null);
+  const [peakValues, setPeakValues] = useState({
+    peakDb: 0,
+    peakVibration: 0,
+    maxPressureDelta: 0
+  });
+  const [autoStatusReason, setAutoStatusReason] = useState("System monitoring");
+  const [peakHistory, setPeakHistory] = useState([]);
 
   useEffect(() => {
     const bombRef = ref(db, "Bomb_Shell");
@@ -19,6 +31,7 @@ export default function App() {
       bombRef,
       (snapshot) => {
         const val = snapshot.val() || {};
+        console.log("Firebase data received:", val);
         const air = val.Air_Pressure ?? "";
         const sound = val.Sound ?? "";
         const vibration = val.Vibration ?? "";
@@ -65,6 +78,25 @@ export default function App() {
           if (next.length > MAX_HISTORY) {
             next.splice(0, next.length - MAX_HISTORY);
           }
+          
+          const peaks = analyzeThreatLevel(next, soundVal, vibrationVal, airNumeric);
+          
+          // Update peak history for charts
+          setPeakHistory((prevPeaks) => {
+            const nextPeaks = [
+              ...prevPeaks,
+              {
+                timestamp: now,
+                peakDb: peaks.peakDb,
+                peakVibration: peaks.peakVibration
+              }
+            ];
+            if (nextPeaks.length > MAX_HISTORY) {
+              nextPeaks.splice(0, nextPeaks.length - MAX_HISTORY);
+            }
+            return nextPeaks;
+          });
+          
           return next;
         });
       },
@@ -76,6 +108,85 @@ export default function App() {
 
     return () => unsubscribe();
   }, []);
+
+  // Threat Level Analysis Function
+  function analyzeThreatLevel(historyData, currentSound, currentVibration, currentPressure) {
+    let threat = "Normal";
+    let conf = 0;
+    let reasons = [];
+    
+    // Check for sound detection
+    const soundDetected = currentSound === 1;
+    let currentPeakDb = 0;
+    if (soundDetected) {
+      conf += 35;
+      reasons.push("High sound detected");
+      currentPeakDb = 70 + Math.random() * 30; // Simulated dB value between 70-100
+    }
+    
+    // Check for vibration detection
+    const vibrationDetected = currentVibration === 1;
+    let currentPeakVibration = 0;
+    if (vibrationDetected) {
+      conf += 30;
+      reasons.push("Vibration spike");
+      currentPeakVibration = 0.5 + Math.random() * 1.5; // Simulated vibration between 0.5-2.0
+    }
+    
+    // Calculate pressure delta (change from previous reading)
+    let pressureDelta = 0;
+    if (historyData.length >= 2 && currentPressure !== null) {
+      const prevPressure = historyData[historyData.length - 2].air_pressure;
+      if (prevPressure !== null) {
+        pressureDelta = Math.abs(currentPressure - prevPressure);
+        if (pressureDelta > 10) {
+          conf += 35;
+          reasons.push("Impulse pressure");
+        } else if (pressureDelta > 5) {
+          conf += 15;
+          reasons.push("Pressure fluctuation");
+        }
+      }
+    }
+    
+    // Update peak values
+    const updatedPeaks = {
+      peakDb: currentPeakDb > 0 ? currentPeakDb : 0,
+      peakVibration: currentPeakVibration > 0 ? currentPeakVibration : 0,
+      maxPressureDelta: 0
+    };
+    
+    setPeakValues(prev => ({
+      peakDb: Math.max(prev.peakDb, updatedPeaks.peakDb),
+      peakVibration: Math.max(prev.peakVibration, updatedPeaks.peakVibration),
+      maxPressureDelta: Math.max(prev.maxPressureDelta, pressureDelta)
+    }));
+    
+    // Determine threat level based on confidence
+    if (conf >= 70) {
+      threat = "High";
+    } else if (conf >= 40) {
+      threat = "Suspicious";
+    } else {
+      threat = "Normal";
+    }
+    
+    // Update last event time if any detection occurred
+    if (soundDetected || vibrationDetected || pressureDelta > 5) {
+      setLastEventTime(new Date());
+    }
+    
+    // Set status reason
+    const statusReason = reasons.length > 0 
+      ? reasons.join(" + ")
+      : "All sensors normal";
+    
+    setThreatLevel(threat);
+    setConfidence(Math.min(conf, 100));
+    setAutoStatusReason(statusReason);
+    
+    return updatedPeaks;
+  }
 
   return (
     <div className="page">
@@ -99,8 +210,15 @@ export default function App() {
             <strong>Error:</strong> {error}
           </div>
         )}
-        <BombShellCard data={data} />
-        <BombShellCharts history={history} />
+        <BombShellCard 
+          data={data} 
+          threatLevel={threatLevel}
+          confidence={confidence}
+          lastEventTime={lastEventTime}
+          peakValues={peakValues}
+          autoStatusReason={autoStatusReason}
+        />
+        <BombShellCharts history={history} peakHistory={peakHistory} />
       </main>
 
       <footer className="footer">
